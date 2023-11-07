@@ -1,0 +1,46 @@
+<!-- tasks/templates/tasks/view_tasks.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Tasks</title>
+</head>
+<body>
+        <!-- Navigation Bar -->
+        <nav>
+            <ul>
+                <li><a href="{% url 'task_list' %}">Task List</a></li>
+                <li><a href="{% url 'view_tasks' %}">View Tasks</a></li>
+            </ul>
+        </nav>
+        <h1>View Tasks</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% if request.session.recently_deleted_task_id %}
+            <p>Task deleted! <a href="#" onclick="document.getElementById('undoForm').submit()">Undo</a></p>
+            <form id="undoForm" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="undo_task_id" value="{{ request.session.recently_deleted_task_id }}">
+            </form>
+            {% endif %}
+        </form>
+        <ul>
+            {% for task in tasks %}
+                <li>
+                    {{ task.title }} - {{ task.deadline }}
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_task_id" value="{{ task.id }}">
+                        <button type="submit">Delete</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </form>
+
+<!-- Undo Form -->
+<form id="undoForm" method="post" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="undo_task_id" value="">
+    <button type="submit">Undo</button>
+</form>

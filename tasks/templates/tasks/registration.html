@@ -1,0 +1,20 @@
+<!-- tasks/templates/registration/register.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task List</title>
+</head>
+<body>
+{% block content %}
+    <h2>Register</h2>
+    <form method="post" action="{% url 'register_user' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Register</button>
+    </form>
+    <a href="{% url 'task_list' %}">Home</a>
+
+{% endblock %}
+</body>
+</html>
