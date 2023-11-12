@@ -6,41 +6,65 @@
     <title>View Tasks</title>
 </head>
 <body>
-        <!-- Navigation Bar -->
-        <nav>
-            <ul>
-                <li><a href="{% url 'task_list' %}">Task List</a></li>
-                <li><a href="{% url 'view_tasks' %}">View Tasks</a></li>
-            </ul>
-        </nav>
-        <h1>View Tasks</h1>
-        <form method="post">
-            {% csrf_token %}
-            {% if request.session.recently_deleted_task_id %}
-            <p>Task deleted! <a href="#" onclick="document.getElementById('undoForm').submit()">Undo</a></p>
-            <form id="undoForm" method="post">
-                {% csrf_token %}
-                <input type="hidden" name="undo_task_id" value="{{ request.session.recently_deleted_task_id }}">
-            </form>
-            {% endif %}
-        </form>
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="{% url 'task_list' %}">Task List</a></li>
+            <li><a href="{% url 'view_tasks' %}">View Tasks</a></li>
+        </ul>
+    </nav>
+
+    <h1>View Tasks</h1>
+
+    <form method="post">
+        {% csrf_token %}
         <ul>
             {% for task in tasks %}
-                <li>
+                <li class="task-item" data-deadline="{{ task.deadline|date:'Y-m-d\TH:i:sO' }}">
                     {{ task.title }} - {{ task.deadline }}
-                    <form method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <input type="hidden" name="delete_task_id" value="{{ task.id }}">
-                        <button type="submit">Delete</button>
-                    </form>
+                    <button type="button" onclick="confirmDelete('{{ task.id }}')">Delete</button>
                 </li>
             {% endfor %}
         </ul>
+        <input type="hidden" id="delete_task_id" name="delete_task_id" value="">
+        <button type="submit" style="display: none;">Submit</button>
     </form>
 
-<!-- Undo Form -->
-<form id="undoForm" method="post" style="display: none;">
-    {% csrf_token %}
-    <input type="hidden" name="undo_task_id" value="">
-    <button type="submit">Undo</button>
-</form>
+    <!-- Undo Form -->
+    {% if request.session.recently_deleted_task_id %}
+        <form method="post" action="{% url 'view_tasks' %}">
+            {% csrf_token %}
+            <input type="hidden" name="undo_task_id" value="{{ request.session.recently_deleted_task_id }}">
+            <button type="submit">Undo</button>
+        </form>
+    {% endif %}
+
+    <script>
+        function confirmDelete(taskId) {
+            var confirmDelete = confirm("Are you sure you want to delete this task?");
+            if (confirmDelete) {
+                document.getElementById('delete_task_id').value = taskId;
+                document.forms[0].submit();
+            }
+        }
+
+        // Check and display notifications for past-due tasks
+        document.addEventListener('DOMContentLoaded', function() {
+            var tasks = document.querySelectorAll('.task-item');
+
+            tasks.forEach(function(task) {
+                var deadline = new Date(task.getAttribute('data-deadline'));
+                var now = new Date();
+
+                if (deadline < now) {
+                    // Task is past due, show a notification
+                    var notification = document.createElement('div');
+                    notification.className = 'notification';
+                    notification.innerText = 'Task deadline is past due!';
+                    task.appendChild(notification);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
